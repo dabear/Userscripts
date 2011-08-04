@@ -13,10 +13,10 @@ var $table = $(".confluenceTable").eq(0),
     $cells = $rows.find("td,th");
 
 
-$cells.wrapInner('<span class="searchtext"></span>')
+
 
 var style = document.createElement("style"),
-    rules = document.createTextNode("td.hidetext span.searchtext{ background: black;}");
+    rules = document.createTextNode("td.hidetext { visibility:hidden;}");
     
 if(style.styleSheet) {
     style.styleSheet.cssText = rules.nodeValue
@@ -45,12 +45,14 @@ $("<input>", {
             search = this.value.split(" ");
         if(isEnterDown) {
             var term = $.trim(search[0]).toLowerCase();
+            log("term:" + term )
+            log("len:" + term.length)
             //reset style for former match, if any
             $matchedCells.removeClass("hidetext");
             //avoid looping if we know we want all cells
-            if(!term.length) {
-                
-                $cells.show();
+            if(!this.value.length) {
+                log("avoiding looping")
+                $cells.removeClass("hidetext")
                 return true;
             }
             
@@ -88,8 +90,8 @@ function getRelatedCells(c) {
     //for each row, add the member which has same vertical placement as current cell
     for(var i=0, len=rows.length; i < len; i++) {
         var cell = rows[i].cells[idx];
-
-        if(cell.nodeName === "TD" ) {
+        
+        if(cell && cell.nodeName === "TD" ) {
             cells.push(cell);
         }
 

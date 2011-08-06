@@ -4,14 +4,15 @@
 // @include        http://wiki/confluence/display/DOC/Dokumentasjon+for+Fagsystemer
 // ==/UserScript==
 /*global jQuery: true, unsafeWindow */
-function log(s){ console.log(s);}
+function log(s){ unsafeWindow.console.log(s);}
 
 (function(jQuery){
 var $ = jQuery;
 
 var $table = $(".confluenceTable").eq(0),
     $rows = $($table.attr("rows")),
-    $cells = $rows.find("td,th");
+    $cells = $rows.find("td,th"),
+    $hiddenRows = $([]);;
 
 
 
@@ -20,7 +21,7 @@ var $table = $(".confluenceTable").eq(0),
 // tags with content, at least inside greasemonkey
 //
 var style = document.createElement("style"),
-    rules = document.createTextNode("td.hidetext, span.hidetext { visibility:hidden;} span.errorlabel{ color: red;}");
+    rules = document.createTextNode("td.hidetext, span.hidetext { visibility:hidden;} span.errorlabel{ color: red;} tr.emptyrow{ display: none}");
     
 if(style.styleSheet) {
     style.styleSheet.cssText = rules.nodeValue;
@@ -77,11 +78,13 @@ function doSearch() {
     var val = $input.val(),
         searches = val.split(/\s+/);
         
+        
 
     
     //reset style for former match, if any
     $matchedCells.removeClass("hidetext");
     $errorLabel.addClass("hidetext");
+    $hiddenRows.removeClass("emptyrow");
     
     //avoid looping if we know we want all cells
     if (!val.length) {
@@ -100,7 +103,7 @@ function doSearch() {
             matches = 0;
         for(var i = 0, len=searches.length; i < len; i++) {
             var term = searches[i].toLowerCase();
-            log("term:" + term);
+            //log("term:" + term);
             
             //first term can be empty if search string starts with emptyspace
             if(!term) {
@@ -127,12 +130,25 @@ function doSearch() {
         $errorLabel.removeClass("hidetext");
     }
     
-    
+   
     
     $cells
         .not($matchedCells.removeClass("hidetext"))
         .addClass("hidetext");
+    
+    //completely empty rows gets removed
+    
+    $hiddenRows = $([])
+    $rows.each( function(){
+        var $children = $(this.cells),
+            $emptyChildren = $children.filter( "td.hidetext");
         
+        //log("row " + (++i) + " children:" + $children.length + ", empty children:" + $emptyChildren.length + "row:");
+        if($children.length == $emptyChildren.length) {
+            $hiddenRows = $hiddenRows.add(this).addClass("emptyrow");
+        }
+    })
+     
     return true;
     
 }

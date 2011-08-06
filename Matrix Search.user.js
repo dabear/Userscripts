@@ -3,6 +3,7 @@
 // @namespace      bjorninge.no
 // @include        http://wiki/confluence/display/DOC/Dokumentasjon+for+Fagsystemer
 // ==/UserScript==
+/*global jQuery: true, unsafeWindow */
 function log(s){ console.log(s);}
 
 (function(jQuery){
@@ -19,7 +20,7 @@ var $table = $(".confluenceTable").eq(0),
 // tags with content, at least inside greasemonkey
 //
 var style = document.createElement("style"),
-    rules = document.createTextNode("td.hidetext { visibility:hidden;}");
+    rules = document.createTextNode("td.hidetext, span.hidetext { visibility:hidden;} span.errorlabel{ color: red;}");
     
 if(style.styleSheet) {
     style.styleSheet.cssText = rules.nodeValue;
@@ -53,15 +54,22 @@ var $input = $("<input>", {
     }
 });
 
-var $submit = $("<input>", {
+var $submit = $("<input />", {
    type: "submit",
+   val: "Søk",
    click: function () {
     doSearch();
     return false;
    }
+   
 });
 
-$container.append($input, $submit);
+var $errorLabel = $('<span />', {
+   className: "hidetext errorlabel",
+   html: "Ingen match!"
+});
+
+$container.append($input, $submit, $errorLabel);
 $container.prependTo($table.parent());
 
 function doSearch() {
@@ -71,8 +79,11 @@ function doSearch() {
         term = $.trim(search[0]).toLowerCase();
     log("term:" + term );
     log("len:" + term.length);
+    
     //reset style for former match, if any
     $matchedCells.removeClass("hidetext");
+    $errorLabel.addClass("hidetext");
+    
     //avoid looping if we know we want all cells
     if (!val.length) {
         log("avoiding looping");
@@ -87,6 +98,12 @@ function doSearch() {
     .getRelatedCells();
     
     log("matched " + $matchedCells.length + " cells containing search term '" + term + "'");
+    
+    if(!$matchedCells.length) {
+        $errorLabel.removeClass("hidetext");
+    }
+    
+    
     
     $cells
         .not($matchedCells.removeClass("hidetext"))
@@ -122,8 +139,8 @@ function getRelatedCells(c) {
     return $cells;
 }
 
-$.fn.getRelatedCells = function(){
-    return this.map(function(){
+$.fn.getRelatedCells = function () {
+    return this.map(function () {
         return getRelatedCells(this).get();
     });
 };

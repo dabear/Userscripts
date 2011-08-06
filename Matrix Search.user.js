@@ -30,51 +30,68 @@ document.body.appendChild(style);
 /* create the search box used for searching the confluence Matrix*/
 
 // 
-var $matchedCells = $([]);
-
-
-$("<input>", {
+var $matchedCells = $([]),
+$container = $("<div />"),
+$input = $("<input>", {
     type: "text",
+    text: "Søk i matrise",
     css: { width: "200px"},
     click: function(){
         this.select();
         
     },
-    keydown: function(e){
-        var isEnterDown = (e.which == 13),
-            search = this.value.split(" ");
-        if(isEnterDown) {
-            var term = $.trim(search[0]).toLowerCase();
-            log("term:" + term )
-            log("len:" + term.length)
-            //reset style for former match, if any
-            $matchedCells.removeClass("hidetext");
-            //avoid looping if we know we want all cells
-            if(!this.value.length) {
-                log("avoiding looping")
-                $cells.removeClass("hidetext")
-                return true;
-            }
-            
-            log("enter pressed! searching for " + search[0] );
-            $matchedCells = $cells.filter( function(){
-                
-               return this.innerHTML.toLowerCase().indexOf(term) + 1; 
-            })
-            .getRelatedCells()
-            
-            
-            log("matched " + $matchedCells.length + " cells containing search term '" + term + "'");
-            
-            $cells
-                .not($matchedCells.removeClass("hidetext"))
-                .addClass("hidetext");
+    keydown: function(e){          
+        if(e.which == 13) {
+            doSearch()
         }
         return true;
     }
-})
-.prependTo($table.parent())
-.focus().select();
+});
+
+var $submit = $("<input>", {
+   type: "submit",
+   click: function(){
+    doSearch();
+    return false;
+   }
+});
+
+$container.append($input, $submit);
+$container.prependTo($table.parent())
+
+function doSearch() {
+    
+    var val = $input.val(),
+        search = val.split(" "),
+        term = $.trim(search[0]).toLowerCase();
+    log("term:" + term )
+    log("len:" + term.length)
+    //reset style for former match, if any
+    $matchedCells.removeClass("hidetext");
+    //avoid looping if we know we want all cells
+    if(!val.length) {
+        log("avoiding looping")
+        $cells.removeClass("hidetext")
+        return true;
+    }
+    
+    log("enter pressed! searching for " + search[0] );
+    $matchedCells = $cells.filter( function(){
+        
+       return this.innerHTML.toLowerCase().indexOf(term) + 1; 
+    })
+    .getRelatedCells()
+    
+    
+    log("matched " + $matchedCells.length + " cells containing search term '" + term + "'");
+    
+    $cells
+        .not($matchedCells.removeClass("hidetext"))
+        .addClass("hidetext");
+    
+}
+
+
 
 
 

@@ -11,7 +11,7 @@ var $ = jQuery;
 
 var $table = $(".confluenceTable").eq(0),
     $rows = $($table.attr("rows")),
-    $cells = $rows.find("td,th");
+    $cells = $rows.find("td,th").slice(20);
 
 
 
@@ -75,10 +75,9 @@ $container.prependTo($table.parent());
 function doSearch() {
     //values to be used for searching, lower cased version for case insensitive searches
     var val = $input.val(),
-        search = val.split(" "),
-        term = $.trim(search[0]).toLowerCase();
-    log("term:" + term );
-    log("len:" + term.length);
+        searches = val.split(/\s+/);
+        
+
     
     //reset style for former match, if any
     $matchedCells.removeClass("hidetext");
@@ -91,13 +90,37 @@ function doSearch() {
         return true;
     }
     
-    log("enter pressed! searching for " + search[0] );
-    $matchedCells = $cells.filter(function () {
-       return this.innerHTML.toLowerCase().indexOf(term) + 1; 
-    })
-    .getRelatedCells();
     
-    log("matched " + $matchedCells.length + " cells containing search term '" + term + "'");
+    
+    
+    log("enter pressed! searching for " + searches.join(",") );
+    $matchedCells = $cells.filter(function () {
+        var html = this.innerHTML.toLowerCase(),
+            matches = 0;
+        for(var i = 0, len=searches.length; i < len; i++) {
+            var term = searches[i].toLowerCase();
+            log("term:" + term);
+            
+            //first term can be empty if search string starts with emptyspace
+            if(!term) {
+                continue;
+            }
+            
+            //all search terms must be found in the cell
+            var partMatched = html.indexOf(term) + 1;
+            
+            //part of the search was not found in the cell, we can brake out early
+            if(!partMatched) {
+                return false;
+            }
+            
+        }
+        
+        return true; 
+    });
+    //.getRelatedCells();
+    
+    log("matched " + $matchedCells.length + " cells containing search terms '" + searches.join(",") + "'");
     
     if(!$matchedCells.length) {
         $errorLabel.removeClass("hidetext");

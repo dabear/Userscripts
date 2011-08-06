@@ -14,12 +14,15 @@ var $table = $(".confluenceTable").eq(0),
 
 
 
-
+//
+// Add stylesheet rules manually, because jquery fails creating <style>
+// tags with content, at least inside greasemonkey
+//
 var style = document.createElement("style"),
     rules = document.createTextNode("td.hidetext { visibility:hidden;}");
     
 if(style.styleSheet) {
-    style.styleSheet.cssText = rules.nodeValue
+    style.styleSheet.cssText = rules.nodeValue;
 } else {
     style.appendChild(rules);
 }
@@ -27,14 +30,16 @@ if(style.styleSheet) {
 document.body.appendChild(style);
 
 
-/* create the search box used for searching the confluence Matrix*/
 
+//
+// Create the search box used for searching the confluence Matrix
 // 
 var $matchedCells = $([]),
-$container = $("<div />"),
-$input = $("<input>", {
+    $container = $("<div />");
+
+var $input = $("<input>", {
     type: "text",
-    text: "Søk i matrise",
+    val: "Søk i matrise",
     css: { width: "200px"},
     click: function(){
         this.select();
@@ -42,7 +47,7 @@ $input = $("<input>", {
     },
     keydown: function(e){          
         if(e.which == 13) {
-            doSearch()
+            doSearch();
         }
         return true;
     }
@@ -50,50 +55,46 @@ $input = $("<input>", {
 
 var $submit = $("<input>", {
    type: "submit",
-   click: function(){
+   click: function () {
     doSearch();
     return false;
    }
 });
 
 $container.append($input, $submit);
-$container.prependTo($table.parent())
+$container.prependTo($table.parent());
 
 function doSearch() {
-    
+    //values to be used for searching, lower cased version for case insensitive searches
     var val = $input.val(),
         search = val.split(" "),
         term = $.trim(search[0]).toLowerCase();
-    log("term:" + term )
-    log("len:" + term.length)
+    log("term:" + term );
+    log("len:" + term.length);
     //reset style for former match, if any
     $matchedCells.removeClass("hidetext");
     //avoid looping if we know we want all cells
-    if(!val.length) {
-        log("avoiding looping")
-        $cells.removeClass("hidetext")
+    if (!val.length) {
+        log("avoiding looping");
+        $cells.removeClass("hidetext");
         return true;
     }
     
     log("enter pressed! searching for " + search[0] );
-    $matchedCells = $cells.filter( function(){
-        
+    $matchedCells = $cells.filter(function () {
        return this.innerHTML.toLowerCase().indexOf(term) + 1; 
     })
-    .getRelatedCells()
-    
+    .getRelatedCells();
     
     log("matched " + $matchedCells.length + " cells containing search term '" + term + "'");
     
     $cells
         .not($matchedCells.removeClass("hidetext"))
         .addClass("hidetext");
+        
+    return true;
     
 }
-
-
-
-
 
 
 function getRelatedCells(c) {
@@ -116,22 +117,15 @@ function getRelatedCells(c) {
 
     //also add all cells horizontally from the current cell
     $cells = $(cells)
-    .add($c.siblings() );
-
+    .add($c.siblings());
 
     return $cells;
-
 }
 
 $.fn.getRelatedCells = function(){
     return this.map(function(){
         return getRelatedCells(this).get();
     });
-
 };
-
-
-//var $cells = $(this).getRelatedCells();
-
 
 })(unsafeWindow.jQuery);

@@ -11,7 +11,7 @@ var $ = jQuery;
 
 var $table = $(".confluenceTable").eq(0),
     $rows = $($table.attr("rows")),
-    $cells = $rows.find("td,th").slice(20);
+    $cells = $rows.find("td,th");
 
 
 
@@ -95,7 +95,8 @@ function doSearch() {
     
     log("enter pressed! searching for " + searches.join(",") );
     $matchedCells = $cells.filter(function () {
-        var html = this.innerHTML.toLowerCase(),
+        //avoid innerhtml as cell can contain multiple children
+        var html = (this.textContent || this.innerText).toLowerCase(),
             matches = 0;
         for(var i = 0, len=searches.length; i < len; i++) {
             var term = searches[i].toLowerCase();

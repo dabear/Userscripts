@@ -12,7 +12,7 @@ var $ = jQuery;
 var $table = $(".confluenceTable").eq(0),
     $rows = $($table.attr("rows")),
     $cells = $rows.find("td,th"),
-    $hiddenRows = $([]);;
+    $hiddenRows = $([]);
 
 
 
@@ -21,7 +21,10 @@ var $table = $(".confluenceTable").eq(0),
 // tags with content, at least inside greasemonkey
 //
 var style = document.createElement("style"),
-    rules = document.createTextNode("td.hidetext, span.hidetext { visibility:hidden;} span.errorlabel{ color: red;} tr.emptyrow{ display: none}");
+    rules = document.createTextNode("td.hidetext, span.hidetext { visibility:hidden;} span.errorlabel{ color: red;}"+
+                                    "tr.emptyrow{ display: none;}" +
+                                    "table.confluenceTable td.confluenceTd.fullymatchedcell{ border: 2px dotted green;}"
+                                    );
     
 if(style.styleSheet) {
     style.styleSheet.cssText = rules.nodeValue;
@@ -85,11 +88,12 @@ function doSearch() {
     $matchedCells.removeClass("hidetext");
     $errorLabel.addClass("hidetext");
     $hiddenRows.removeClass("emptyrow");
+    $cells.removeClass("hidetext partmatchedcell fullymatchedcell");
     
     //avoid looping if we know we want all cells
     if (!val.length) {
         log("avoiding looping");
-        $cells.removeClass("hidetext");
+        
         return true;
     }
     
@@ -121,8 +125,12 @@ function doSearch() {
         }
         
         return true; 
-    });
-    //.getRelatedCells();
+    })
+    .addClass("fullymatchedcell");
+    
+    $matchedCells.siblings()
+        .addClass("partmatchedcell")
+    .andSelf();
     
     log("matched " + $matchedCells.length + " cells containing search terms '" + searches.join(",") + "'");
     
@@ -134,11 +142,13 @@ function doSearch() {
     
     $cells
         .not($matchedCells.removeClass("hidetext"))
+        .not(".partmatchedcell")
+        .not(".fullymatchedcell")
         .addClass("hidetext");
     
     //completely empty rows gets removed
     
-    $hiddenRows = $([])
+    $hiddenRows = $([]);
     $rows.each( function(){
         var $children = $(this.cells),
             $emptyChildren = $children.filter( "td.hidetext");
@@ -147,7 +157,7 @@ function doSearch() {
         if($children.length == $emptyChildren.length) {
             $hiddenRows = $hiddenRows.add(this).addClass("emptyrow");
         }
-    })
+    });
      
     return true;
     
